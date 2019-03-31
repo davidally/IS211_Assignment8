@@ -106,21 +106,24 @@ def main():
         '--timed', help='Play a timed version of Pig y/n', required=False, default=None)
     args = parse.parse_args()
 
-    # Initialize game
+    # Check then initialize proper game type
     if args.timed == 'y':
         pig_game = TimedGameProxy()
         # pig.game_timer()
+        # Add players to the game
+        factory = PlayerFactory()
+        player1 = factory.player_create('CPU') if re.match(
+            r'(cpu|computer)', args.player1, flags=re.IGNORECASE) else factory.player_create('HUMAN')
+        player2 = factory.player_create('CPU') if re.match(
+            r'(cpu|computer)', args.player2, flags=re.IGNORECASE) else factory.player_create('HUMAN')
     else:
         pig_game = PigGameInstance()
+        player_count = int(
+            raw_input('Set amount of players for this game: ').strip())
+        for _ in range(player_count):
+            pig_game.add_player(User())
 
     game_dye = Dye(6)
-
-    # Add players to the game
-    factory = PlayerFactory()
-    player1 = factory.player_create('CPU') if re.match(
-        r'(cpu|computer)', args.player1, flags=re.IGNORECASE) else factory.player_create('HUMAN')
-    player2 = factory.player_create('CPU') if re.match(
-        r'(cpu|computer)', args.player2, flags=re.IGNORECASE) else factory.player_create('HUMAN')
 
     print '\n***~\~\~\~\~\~\~####### WELCOME TO PIG! #######~/~/~/~/~/~/~***\n'
     print '''
