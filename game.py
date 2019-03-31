@@ -4,6 +4,7 @@
 import random
 import argparse
 import re
+from timeit import default_timer as Timer
 
 
 class User(object):
@@ -19,13 +20,21 @@ class User(object):
 class ComputerPlayer(User):
 
     def __init__(self):
-        self.name = "Computer"
+        self.name = raw_input('\nEnter the computer name: ').strip()
 
     def ai_strategy(self, pending_points):
         if pending_points >= 25 or pending_points >= (100 - self.player_score):
             return 'hold'
         else:
             return 'roll'
+
+
+class PlayerFactory(object):
+    def player_create(self, player_type):
+        if player_type == 'CPU':
+            return ComputerPlayer()
+        elif player_type == 'HUMAN':
+            return User()
 
 
 class Dye(object):
@@ -45,8 +54,8 @@ class PigGameInstance(object):
         self.pending_points = 0
         self.current_player_turn = None
 
-    def add_player(self, user):
-        self.player_data[user.name] = user.player_score
+    def add_player(self, player):
+        self.player_data[player.name] = player.player_score
 
     def check_if_winner(self):
         for key, val in self.player_data.items():
@@ -81,21 +90,37 @@ class PigGameInstance(object):
                 break
 
 
+class TimedGameProxy(PigGameInstance):
+    def __init__(self):
+        self.game_length = 60.0
+        self.game_timer = None
+
+
 def main():
     parse = argparse.ArgumentParser()
-    parse.add_argument('--num', action='store', type=int,
-                       help='Enter player count.')
+    parse.add_argument(
+        '--player1', help='Set whether Player 1 is a human or computer.', required=True)
+    parse.add_argument(
+        '--player2', help='Set whether Player 2 is a human or computer.', required=True)
+    parse.add_argument(
+        '--timed', help='Play a timed version of Pig y/n', required=False, default=None)
     args = parse.parse_args()
+
     # Initialize game
-    pig_game = PigGameInstance()
+    if args.timed == 'y':
+        pig_game = TimedGameProxy()
+        # pig.game_timer()
+    else:
+        pig_game = PigGameInstance()
+
     game_dye = Dye(6)
 
-    # Set up the match
-
-    for _ in range(args.num):
-        pig_game.add_player(User())
-
-    # Check if there is at least two players
+    # Add players to the game
+    factory = PlayerFactory()
+    player1 = factory.player_create('CPU') if re.match(
+        r'(cpu|computer)', args.player1, flags=re.IGNORECASE) else factory.player_create('HUMAN')
+    player2 = factory.player_create('CPU') if re.match(
+        r'(cpu|computer)', args.player2, flags=re.IGNORECASE) else factory.player_create('HUMAN')
 
     print '\n***~\~\~\~\~\~\~####### WELCOME TO PIG! #######~/~/~/~/~/~/~***\n'
     print '''
